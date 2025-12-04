@@ -8,9 +8,11 @@ Supports two modes:
 All linear algebra (LUP, solve) implemented from scratch (no numpy.linalg).
 """
 
+from colorama import Fore, Style, init
 from typing import List, Tuple
 import math
 import random
+
 
 # ---------- Basic matrix helpers ----------
 def zeros_matrix(rows:int, cols:int) -> List[List[float]]:
@@ -144,85 +146,153 @@ def population_data(n=100):
 
 # ---------- Interaction ----------
 def run_choice1():
-    print("Choice 1: enter 6 data points (x y). Program fits degree 5 polynomial and predicts y at x7.")
-    input_points = []
-    for i in range(6):
-        txt = input(f"Point {i+1} (format: x y): ").strip()
-        x_s, y_s = txt.split()
-        input_points.append((float(x_s), float(y_s)))
-    x_vals = [p[0] for p in input_points]
-    y_vals = [p[1] for p in input_points]
-    # degree = 5 (since 6 points -> degree 5 per your rule)
-    degree = 5
-    V = vandermonde(x_vals, degree)
-    coeffs = solve_normal_equation_using_lup(V, y_vals)
-    x7 = float(input("Enter x7 (the x at which to predict y7): ").strip())
-    y7 = polyval(coeffs, x7)
-    print(f"Predicted y7 at x={x7}: {y7:.4f}")
-    print("Coefficients (highest->lowest):")
-    print([round(c, 6) for c in coeffs])
+    print("\nChoice 1: enter 6 data points (x y). Program fits degree 5 polynomial and predicts y at x7.")
+
+    while True:  # allows repeating the process or returning to menu
+        input_points = []
+
+        # Input 6 points
+        i = 0
+        while i < 6:
+            txt = input(f"Point {i+1} (format: x y) or 'M' to return to main menu: ").strip()
+            if txt.upper() == 'M':
+                return  # go back to main menu
+            try:
+                x_s, y_s = txt.split()
+                input_points.append((float(x_s), float(y_s)))
+                i += 1
+            except ValueError:
+                print("Invalid format. Please enter two numbers separated by a space, or 'M' to return to main menu.")
+
+        x_vals = [p[0] for p in input_points]
+        y_vals = [p[1] for p in input_points]
+
+        degree = 5  # 6 points -> degree 5
+        V = vandermonde(x_vals, degree)
+
+        try:
+            coeffs = solve_normal_equation_using_lup(V, y_vals)
+        except Exception as e:  # catch singular or other numerical errors
+            print(f"\nError: {e}")
+            print("Matrix is singular or nearly singular. Please enter different points.\n")
+            continue  # restart input loop
+
+        # Input x7
+        while True:
+            txt = input("Enter x7 (the x at which to predict y7) or 'M' to return to main menu: ").strip()
+            if txt.upper() == 'M':
+                return
+            try:
+                x7 = float(txt)
+                break
+            except ValueError:
+                print("Invalid input. Enter a number for x7 or 'M' to return to main menu.")
+
+        y7 = polyval(coeffs, x7)
+        print(f"Predicted y7 at x={x7}: {y7:.4f}")
+        print("Coefficients (highest->lowest):")
+        print([round(c, 6) for c in coeffs])
+
+        # Ask if user wants to predict again or return to main menu
+        again = input("\nPredict with new points? (Y to continue, M for main menu): ").strip().upper()
+        if again == 'M':
+            return
+        elif again != 'Y':
+            print("Invalid input, returning to main menu.")
+            return
+
+
 
 def run_choice2():
+
     xs, ys = population_data(100)  # xs = 0..99 (1924 -> 0)
-    print("Choice 2: program has 100 baked points (1924..2023).")
-    
-    # Ask the user which year they want to predict
-    x_year = int(input("Enter the year you want to predict (1924..2028): ").strip())
-    if x_year < 1924 or x_year > 2028:
-        print("Year must be between 1924 and 2028")
-        return
+    print("\nChoice 2: program has 100 years of global population data, scaled in billions with 2 decimals (1924..2023).")
 
-    # Shift year to x in dataset
-    x_next = x_year - 1924
+    while True:  # loop to allow multiple predictions or return to main menu
+        user_input = input("Enter the year you want to predict (1924..2028) or 'M' to return to main menu: ").strip()
+        
+        if user_input.upper() == 'M':
+            return  # go back to main menu
+        
+        try:
+            x_year = int(user_input)
+            if not 1924 <= x_year <= 2028:
+                print("Year must be between 1924 and 2028.")
+                continue
+        except ValueError:
+            print("Invalid input. Enter a year or 'M' to return to main menu.")
+            continue
 
-    # Determine points to use
-    if x_next <= 99:
-        # Interpolation: pick 10 points centered around x_next
-        idx = min(range(len(xs)), key=lambda i: abs(xs[i]-x_next))
-        start = max(0, min(idx-4, len(xs)-10))  # ensures 10 points without going out of bounds
-        end = start + 10
-        x_used = xs[start:end]
-        y_used = ys[start:end]
-        degree = len(x_used) - 1  # full-degree polynomial
-    else:
-        # Extrapolation: use last 10 points for stability
-        x_used = xs[-10:]
-        y_used = ys[-10:]
-        degree = 3  # degree 5 polynomial for extrapolation
+        # Shift year to x in dataset
+        x_next = x_year - 1924
 
-    # Rescale x to [0,1] for numerical stability
-    x_min = x_used[0]
-    x_max = x_used[-1]
-    x_scaled = [(xi - x_min) / (x_max - x_min) for xi in x_used]
-    x_next_scaled = (x_next - x_min) / (x_max - x_min)
+        # Determine points to use
+        if x_next <= 99:
+            # Interpolation: pick 10 points centered around x_next
+            idx = min(range(len(xs)), key=lambda i: abs(xs[i]-x_next))
+            start = max(0, min(idx-4, len(xs)-10))  # ensures 10 points without going out of bounds
+            end = start + 10
+            x_used = xs[start:end]
+            y_used = ys[start:end]
+            degree = len(x_used) - 1  # full-degree polynomial
+        else:
+            # Extrapolation: use last 10 points for stability
+            x_used = xs[-10:]
+            y_used = ys[-10:]
+            degree = 3  # degree 3 polynomial for extrapolation
 
-    print(f"Using {len(x_used)} points -> degree {degree}")
+        # Rescale x to [0,1] for numerical stability
+        x_min = x_used[0]
+        x_max = x_used[-1]
+        x_scaled = [(xi - x_min) / (x_max - x_min) for xi in x_used]
+        x_next_scaled = (x_next - x_min) / (x_max - x_min)
 
-    # Fit polynomial
-    V = vandermonde(x_scaled, degree)
-    coeffs = solve_normal_equation_using_lup(V, y_used)
+        print(f"Using {len(x_used)} points -> degree {degree}")
 
-    # Predict
-    y_next = polyval(coeffs, x_next_scaled)
-    print(f"Predicted population for year {x_year}: {y_next:.2f} billion")
+        # Fit polynomial
+        V = vandermonde(x_scaled, degree)
+        coeffs = solve_normal_equation_using_lup(V, y_used)
 
-    # Show all coefficients used
-    print("Coefficients used (highest->lowest, rounded 6 decimals):")
-    print([round(c, 6) for c in coeffs])
+        # Predict
+        y_next = polyval(coeffs, x_next_scaled)
+        print(f"Predicted population for year {x_year}: {y_next:.2f} billion")
+
+        # Show all coefficients used
+        print("Coefficients used (highest->lowest, rounded 6 decimals):")
+        print([round(c, 6) for c in coeffs])
+
+        # Ask if user wants to predict another year or return to main menu
+        again = input("\nPredict another year? (Y to continue, M for main menu): ").strip().upper()
+        if again == 'M':
+            return  # go back to main menu
+        elif again != 'Y':
+            print("Invalid input, returning to main menu.")
+            return
+
 
 
 
 def main():
-    print("Polynomial regression program (LUP solver).")
-    print("1) Enter 6 points -> predict 7th (degree 5).")
-    print("2) Use baked 100 points -> enter n (1..100) -> fit first n points (degree n-1) -> predict next.")
-    choice = input("Choose 1 or 2: ").strip()
-    if choice == "1":
-        run_choice1()
-    elif choice == "2":
-        run_choice2()
-    else:
-        print("Invalid choice.")
+    print("Polynomial Curve Fitting (Regression)")
+    
+    while True:  # main loop
+        print("\nMenu:")
+        print("1) Enter 6 points -> predict 7th (degree 5).")
+        print("2) Use baked 100 points -> enter n (1..100) -> fit first n points (degree n-1) -> predict next.")
+        print("Q) Quit program")
+        
+        choice = input("Choose 1, 2, or Q: ").strip().upper()
+        
+        if choice == "1":
+            run_choice1()
+        elif choice == "2":
+            run_choice2()
+        elif choice == "Q":
+            print("Exiting program. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter 1, 2, or Q.")
+
 
 if __name__ == "__main__":
     main()
