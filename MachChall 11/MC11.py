@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-Polynomial regression via normal equations solved with LUP (LU + partial pivoting).
-Supports two modes:
-1) User inputs 6 points -> degree 5 -> predict 7th y at given x7.
-2) Use 100 baked points -> user inputs n (1..100) -> use first n points (degree n-1)
-   to predict next point.
-All linear algebra (LUP, solve) implemented from scratch (no numpy.linalg).
-"""
 
 from colorama import Fore, Style, init
 from typing import List, Tuple
@@ -14,7 +5,7 @@ import math
 import random
 
 
-# ---------- Basic matrix helpers ----------
+# --------- matrix helpers ----------
 def zeros_matrix(rows:int, cols:int) -> List[List[float]]:
     return [[0.0]*cols for _ in range(rows)]
 
@@ -189,8 +180,8 @@ def run_choice1():
                 print("Invalid input. Enter a number for x7 or 'M' to return to main menu.")
 
         y7 = polyval(coeffs, x7)
-        print(f"Predicted y7 at x={x7}: {y7:.4f}")
-        print("Coefficients (highest->lowest):")
+        print(f"\nPredicted y7 at x={x7}: {y7:.4f}")
+        print("\nCoefficients (highest->lowest):")
         print([round(c, 6) for c in coeffs])
 
         # Ask if user wants to predict again or return to main menu
@@ -217,10 +208,10 @@ def run_choice2():
         try:
             x_year = int(user_input)
             if not 1924 <= x_year <= 2028:
-                print("Year must be between 1924 and 2028.")
+                print("Year must be between 1924 and 2028. \n")
                 continue
         except ValueError:
-            print("Invalid input. Enter a year or 'M' to return to main menu.")
+            print("Invalid input. Enter a year or 'M' to return to main menu.\n")
             continue
 
         # Shift year to x in dataset
@@ -247,7 +238,7 @@ def run_choice2():
         x_scaled = [(xi - x_min) / (x_max - x_min) for xi in x_used]
         x_next_scaled = (x_next - x_min) / (x_max - x_min)
 
-        print(f"Using {len(x_used)} points -> degree {degree}")
+        print(f"\nUsing {len(x_used)} points -> degree {degree}")
 
         # Fit polynomial
         V = vandermonde(x_scaled, degree)
@@ -258,7 +249,7 @@ def run_choice2():
         print(f"Predicted population for year {x_year}: {y_next:.2f} billion")
 
         # Show all coefficients used
-        print("Coefficients used (highest->lowest, rounded 6 decimals):")
+        print("\nCoefficients used (highest->lowest, rounded 6 decimals):")
         print([round(c, 6) for c in coeffs])
 
         # Ask if user wants to predict another year or return to main menu
@@ -273,7 +264,7 @@ def run_choice2():
 
 
 def main():
-    print("Polynomial Curve Fitting (Regression)")
+    print("\nPolynomial Curve Fitting (Regression)")
     
     while True:  # main loop
         print("\nMenu:")
