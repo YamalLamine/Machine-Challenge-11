@@ -123,7 +123,7 @@ def polyval(coeffs:List[float], x:float) -> float:
     return s
 
 # ---------- Example baked 100 points (synthetic) ----------
-def make_baked_data(n=100):
+def population_data(n=100):
     # Years shifted so 1924 -> x = 0
     xs = [i - 1924 for i in range(1924, 2024)]
     
@@ -158,34 +158,59 @@ def run_choice1():
     coeffs = solve_normal_equation_using_lup(V, y_vals)
     x7 = float(input("Enter x7 (the x at which to predict y7): ").strip())
     y7 = polyval(coeffs, x7)
-    print(f"Predicted y7 at x={x7}: {y7}")
+    print(f"Predicted y7 at x={x7}: {y7:.4f}")
     print("Coefficients (highest->lowest):")
-    print(coeffs)
+    print([round(c, 6) for c in coeffs])
 
 def run_choice2():
-    xs, ys = make_baked_data(100)
-    print("Choice 2: program has 100 baked points (x0..x99).")
-    n_str = input("Enter n (use first n points, 1..100): ").strip()
-    n = int(n_str)
-    if n < 1 or n > 100:
-        print("n must be between 1 and 100")
+    xs, ys = population_data(100)  # xs = 0..99 (1924 -> 0)
+    print("Choice 2: program has 100 baked points (1924..2023).")
+    
+    # Ask the user which year they want to predict
+    x_year = int(input("Enter the year you want to predict (1924..2028): ").strip())
+    if x_year < 1924 or x_year > 2028:
+        print("Year must be between 1924 and 2028")
         return
-    x_used = xs[:n]
-    y_used = ys[:n]
-    degree = n - 1  # per assumption
-    print(f"Using {n} points -> degree {degree}")
-    V = vandermonde(x_used, degree)
-    coeffs = solve_normal_equation_using_lup(V, y_used)
-    # predict next x: we'll use xs[n] if exists; else ask user
-    if n < len(xs):
-        x_next = xs[n]
-        print(f"Predicting y at baked x_next = {x_next}")
+
+    # Shift year to x in dataset
+    x_next = x_year - 1924
+
+    # Determine points to use
+    if x_next <= 99:
+        # Interpolation: pick 10 points centered around x_next
+        idx = min(range(len(xs)), key=lambda i: abs(xs[i]-x_next))
+        start = max(0, min(idx-4, len(xs)-10))  # ensures 10 points without going out of bounds
+        end = start + 10
+        x_used = xs[start:end]
+        y_used = ys[start:end]
+        degree = len(x_used) - 1  # full-degree polynomial
     else:
-        x_next = float(input("Enter x at which to predict next y: ").strip())
-    y_next = polyval(coeffs, x_next)
-    print(f"Predicted y_next: {y_next}")
-    print("Sample coefficients (first 10 highest->lowest):")
-    print([round(c,6) for c in coeffs[:10]])
+        # Extrapolation: use last 10 points for stability
+        x_used = xs[-10:]
+        y_used = ys[-10:]
+        degree = 3  # degree 5 polynomial for extrapolation
+
+    # Rescale x to [0,1] for numerical stability
+    x_min = x_used[0]
+    x_max = x_used[-1]
+    x_scaled = [(xi - x_min) / (x_max - x_min) for xi in x_used]
+    x_next_scaled = (x_next - x_min) / (x_max - x_min)
+
+    print(f"Using {len(x_used)} points -> degree {degree}")
+
+    # Fit polynomial
+    V = vandermonde(x_scaled, degree)
+    coeffs = solve_normal_equation_using_lup(V, y_used)
+
+    # Predict
+    y_next = polyval(coeffs, x_next_scaled)
+    print(f"Predicted population for year {x_year}: {y_next:.2f} billion")
+
+    # Show all coefficients used
+    print("Coefficients used (highest->lowest, rounded 6 decimals):")
+    print([round(c, 6) for c in coeffs])
+
+
 
 def main():
     print("Polynomial regression program (LUP solver).")
@@ -201,4 +226,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
