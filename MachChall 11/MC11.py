@@ -124,16 +124,22 @@ def polyval(coeffs:List[float], x:float) -> float:
 
 # ---------- Example baked 100 points (synthetic) ----------
 def make_baked_data(n=100):
-    # Example: daily flu counts with a smooth-ish underlying function + noise.
-    rng = random.Random(0)
-    xs = [float(i) for i in range(n)]
-    ys = []
-    for i in xs:
-        # synthetic pattern: a slow seasonal bump + local oscillation + noise
-        base = 50 + 30*math.exp(-((i-40)/25.0)**2)      # bump around 40
-        small_wave = 8*math.sin(i*0.2)
-        noise = rng.uniform(-4, 4)
-        ys.append(base + small_wave + noise)
+    # Years shifted so 1924 -> x = 0
+    xs = [i - 1924 for i in range(1924, 2024)]
+    
+    # Global population in billions
+    ys = [
+        1.96, 1.98, 2, 2.01, 2.03, 2.05, 2.07, 2.09, 2.11, 2.13,
+        2.16, 2.18, 2.2, 2.22, 2.25, 2.27, 2.29, 2.31, 2.33, 2.35,
+        2.37, 2.38, 2.4, 2.42, 2.44, 2.47, 2.49, 2.54, 2.58, 2.63,
+        2.69, 2.74, 2.8, 2.85, 2.91, 2.97, 3.02, 3.06, 3.12, 3.19,
+        3.26, 3.33, 3.4, 3.47, 3.55, 3.62, 3.69, 3.77, 3.84, 3.92,
+        4, 4.07, 4.14, 4.22, 4.29, 4.37, 4.45, 4.53, 4.61, 4.7,
+        4.78, 4.87, 4.96, 5.05, 5.14, 5.23, 5.33, 5.42, 5.51, 5.59,
+        5.68, 5.76, 5.84, 5.92, 6.01, 6.09, 6.17, 6.25, 6.34, 6.42,
+        6.5, 6.59, 6.67, 6.76, 6.84, 6.93, 7.02, 7.11, 7.2, 7.29,
+        7.38, 7.47, 7.56, 7.65, 7.73, 7.81, 7.89, 7.95, 8.02, 8.09
+    ]
     return xs, ys
 
 # ---------- Interaction ----------
@@ -195,3 +201,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
