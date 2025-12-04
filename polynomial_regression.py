@@ -17,7 +17,7 @@ def generate_sample_data(n_samples=100, noise=10, random_state=42):
     """
     Generate sample data for polynomial regression.
     
-    The true underlying function is: y = 0.5*x^2 + x + 2 + noise
+    The true underlying function is: y = 0.5*x² + x + 2 + noise
     
     Args:
         n_samples: Number of samples to generate

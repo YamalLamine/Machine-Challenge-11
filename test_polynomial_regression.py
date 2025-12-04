@@ -50,7 +50,8 @@ class TestFitPolynomialRegression:
         X, y = generate_sample_data(n_samples=50)
         model, poly_features = fit_polynomial_regression(X, y, degree=2)
         assert hasattr(model, 'coef_')
-        assert len(model.coef_) == 2  # degree 2 with include_bias=False
+        # For degree=2 polynomial on 1 feature with include_bias=False: x and x² = 2 features
+        assert len(model.coef_) == 2
 
 
 class TestPredict:
