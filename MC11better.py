@@ -85,7 +85,7 @@ def run_choice1():
 
         # --- Get x7 from user ---
         while True: # while loop is here so we can have an option for the user to reuse the same points
-            txt = input("\n(Enter 'N' to use new set points, or 'M' to return to Menu) \nEnter x7 to predict y7: ").strip().upper()
+            txt = input("\n(Enter 'N' to use new set of points, or 'M' to return to Menu) \nEnter x7 to predict y7: ").strip().upper()
             if txt == 'M':
                 clear_console()
                 return
@@ -155,7 +155,7 @@ def run_choice2():
 
         # --- Degree Selection ---
         while True:
-            degree_input = input(f"\n\nChoose polynomial degree (0 to {n_points-1}), recommended of 4, \nOr 'B' to go back to year range: ").strip().upper()
+            degree_input = input(f"\nChoose polynomial degree (0 to {n_points-1}), recommended of 4, \nOr 'B' to go back to year range: ").strip().upper()
             if degree_input == 'B':
                 clear_console()
                 return run_choice2()
@@ -184,7 +184,7 @@ def run_choice2():
             # Condition number warning
             if cond > 1e10:
                 print(f"\n⚠ WARNING: Ill-conditioned matrix (cond = {cond:.2e}).")
-                print("Predictions may be unstable.\n")
+                print("Predictions may be unstable.")
 
             # --- Prediction Loop ---
             while True:
@@ -203,7 +203,7 @@ def run_choice2():
                     continue
 
                 if year_predict < 1924 or year_predict > 2100:
-                    print("⚠ Warning: Predicting far outside the data range may be inaccurate.\n")
+                    print("⚠ Warning: Predicting far outside the data range may be inaccurate.")
 
                 # Compute scaled x for prediction
                 x_scaled = (year_predict - xmin - 1924) / (xmax - xmin)
@@ -220,7 +220,7 @@ def run_choice2():
 
                 # Desmos helper
                 xd = desmos_x_value(year_predict, start_year, end_year)
-                print(f"\nFor Desmos: Input x = {xd:.6f} to evaluate the polynomial for year {year_predict}.\n")
+                print(f"\nFor Desmos: Input x = {xd:.6f} to evaluate the polynomial for year {year_predict}.")
 
 
 # ---------- QR decomposition for polynomial fitting in Choice 1 ----------
